@@ -18,18 +18,18 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/deals', dealRoutes);
 
-// Default route
+// Root route
 app.get('/', (req, res) => {
   res.send('Newlink Exchange API is running...');
 });
 
-// MongoDB Connection
-mongoose.connect('mongodb://localhost:27017/newlink', {
+// MongoDB
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/newlink', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-}).then(() => {
+})
+.then(() => {
   console.log('MongoDB connected');
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-}).catch(err => {
-  console.error('MongoDB connection error:', err);
-});
+  app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+})
+.catch(err => console.error('MongoDB connection error:', err));
