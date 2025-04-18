@@ -7,7 +7,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const dealRoutes = require('./routes/deals');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT; // ✅ Required for Render
 
 // Middleware
 app.use(express.json());
@@ -18,18 +18,22 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/deals', dealRoutes);
 
-// Root route
+// Root route to test the API
 app.get('/', (req, res) => {
-  res.send('Newlink Exchange API is running...');
+  res.send('Newlink Exchange API is running on Render 🎉');
 });
 
-// MongoDB
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/newlink', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
 .then(() => {
-  console.log('MongoDB connected');
-  app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+  console.log('✅ Connected to MongoDB');
+  app.listen(PORT, () => {
+    console.log(`🚀 Server listening on port ${PORT}`);
+  });
 })
-.catch(err => console.error('MongoDB connection error:', err));
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+});
