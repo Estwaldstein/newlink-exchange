@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
   res.send('Newlink Exchange API is running on Render 🎉');
 });
 
-// MongoDB Connection
+/* // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/newlink', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -36,4 +36,10 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/newlink', {
 })
 .catch(err => {
   console.error('❌ MongoDB connection error:', err);
+});
+*/
+
+// TEMP: Listen immediately
+app.listen(PORT, () => {
+  console.log(`🚀 Server running without DB on port ${PORT}`);
 });
