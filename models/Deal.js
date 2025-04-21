@@ -8,6 +8,7 @@ const dealSchema = new mongoose.Schema({
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   ndaSignedByIntroducer: { type: Boolean, default: false },
   ndaSignedByPartner: { type: Boolean, default: false }
+  interestedPartners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Deal', dealSchema);
