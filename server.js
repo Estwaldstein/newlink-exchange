@@ -10,7 +10,6 @@ const messageRoutes = require('./routes/messages');
 const app = express();
 const PORT = process.env.PORT;
 const notificationRoutes = require('./routes/notifications');
-app.use('/api/notifications', notificationRoutes);
 
 // Middleware
 app.use(express.json()); // ✅ Keep only this one
@@ -21,6 +20,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/deals', dealRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Root test route
 app.get('/', (req, res) => {
