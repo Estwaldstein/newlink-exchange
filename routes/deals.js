@@ -55,7 +55,7 @@ router.post('/nda/:id', auth, async (req, res) => {
   res.json({ message: 'NDA signed' });
 });
 
-// Express interest in a deal (Partner only) — with notification
+// Express interest in a deal (Partner only)
 router.post('/interest/:id', auth, async (req, res) => {
   if (req.user.role !== 'partner') {
     return res.status(403).json({ error: 'Only partners can express interest' });
@@ -70,13 +70,17 @@ router.post('/interest/:id', auth, async (req, res) => {
     deal.interestedPartners.push(req.user.id);
     await deal.save();
 
-    // 🔔 Notify the introducer
-    const introducer = await User.findById(deal.submittedBy);
-    if (introducer) {
-      introducer.notifications.push({
-        content: `A partner has shown interest in your deal: "${deal.title}"`
-      });
-      await introducer.save();
+    // 🔔 Safe notification
+    try {
+      const introducer = await User.findById(deal.submittedBy.toString());
+      if (introducer) {
+        introducer.notifications.push({
+          content: `A partner has shown interest in your deal: "${deal.title}"`
+        });
+        await introducer.save();
+      }
+    } catch (err) {
+      console.error('Error sending notification to introducer:', err);
     }
   }
 
