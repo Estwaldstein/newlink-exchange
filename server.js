@@ -11,6 +11,7 @@ const PORT = process.env.PORT; // ✅ Required for Render
 
 const messageRoutes = require('./routes/messages');
 app.use('/api/messages', messageRoutes);
+app.use(express.json());
 
 // Middleware
 app.use(express.json());
