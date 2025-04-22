@@ -73,4 +73,24 @@ router.post('/interest/:id', auth, async (req, res) => {
   res.json({ message: 'Interest expressed', dealId: deal._id });
 });
 
+// Admin: Update deal status
+router.post('/status/:id', auth, async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Only admins can update status' });
+  }
+
+  const { status } = req.body;
+  if (!['pending', 'approved', 'archived'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status value' });
+  }
+
+  const deal = await Deal.findById(req.params.id);
+  if (!deal) return res.status(404).json({ error: 'Deal not found' });
+
+  deal.status = status;
+  await deal.save();
+
+  res.json({ message: 'Deal status updated', deal });
+});
+
 module.exports = router;
