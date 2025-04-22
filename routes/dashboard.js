@@ -23,11 +23,20 @@ router.get('/', auth, async (req, res) => {
 
       return dealObj;
     });
+    
   } else if (role === 'admin') {
-    deals = await Deal.find()
-    .populate('submittedBy', 'email role') // Show who submitted
-    .populate('interestedPartners', 'email role'); // Show who’s interested
-  } else {
+  const { status } = req.query;
+
+  const query = {};
+  if (status && ['pending', 'approved', 'archived'].includes(status)) {
+    query.status = status;
+  }
+
+  deals = await Deal.find(query)
+    .populate('submittedBy', 'email role')
+    .populate('interestedPartners', 'email role');
+  }
+    else {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
