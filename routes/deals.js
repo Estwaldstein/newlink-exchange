@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const Deal = require('../models/Deal');
+const User = require('../models/User'); // ⬅️ Needed for notification
 const auth = require('../middleware/authMiddleware');
 
 const router = express.Router();
@@ -54,13 +55,13 @@ router.post('/nda/:id', auth, async (req, res) => {
   res.json({ message: 'NDA signed' });
 });
 
-// Express interest in a deal (Partner only)
+// Express interest in a deal (Partner only) — Updated with notification
 router.post('/interest/:id', auth, async (req, res) => {
   if (req.user.role !== 'partner') {
     return res.status(403).json({ error: 'Only partners can express interest' });
   }
 
-  const deal = await Deal.findById(req.params.id);
+  const deal = await Deal.findById(req.params.id).populate('submittedBy');
   if (!deal) {
     return res.status(404).json({ error: 'Deal not found' });
   }
@@ -68,6 +69,13 @@ router.post('/interest/:id', auth, async (req, res) => {
   if (!deal.interestedPartners.includes(req.user.id)) {
     deal.interestedPartners.push(req.user.id);
     await deal.save();
+
+    // 🔔 Add notification for introducer
+    const introducer = await User.findById(deal.submittedBy._id);
+    introducer.notifications.push({
+      content: `A partner has shown interest in your deal: "${deal.title}"`
+    });
+    await introducer.save();
   }
 
   res.json({ message: 'Interest expressed', dealId: deal._id });
