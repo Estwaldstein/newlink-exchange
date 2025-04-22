@@ -9,6 +9,9 @@ const dealRoutes = require('./routes/deals');
 const app = express();
 const PORT = process.env.PORT; // ✅ Required for Render
 
+const messageRoutes = require('./routes/messages');
+app.use('/api/messages', messageRoutes);
+
 // Middleware
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
