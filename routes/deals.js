@@ -70,15 +70,13 @@ router.post('/interest/:id', auth, async (req, res) => {
     deal.interestedPartners.push(req.user.id);
     await deal.save();
 
-    // 🔔 Notification fix
     try {
       const introducer = await User.findById(deal.submittedBy.toString());
       if (introducer) {
         introducer.notifications.push({
           content: `A partner has shown interest in your deal: "${deal.title}"`
         });
-        introducer.markModified('notifications'); // Ensure array update is saved
-        await introducer.save();
+        await introducer.save(); // No markModified needed now
       }
     } catch (err) {
       console.error('Error sending notification to introducer:', err);
