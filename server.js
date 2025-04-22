@@ -9,6 +9,8 @@ const messageRoutes = require('./routes/messages');
 
 const app = express();
 const PORT = process.env.PORT;
+const notificationRoutes = require('./routes/notifications');
+app.use('/api/notifications', notificationRoutes);
 
 // Middleware
 app.use(express.json()); // ✅ Keep only this one
