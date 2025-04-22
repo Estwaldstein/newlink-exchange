@@ -5,29 +5,27 @@ const path = require('path');
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
 const dealRoutes = require('./routes/deals');
+const messageRoutes = require('./routes/messages');
 
 const app = express();
-const PORT = process.env.PORT; // ✅ Required for Render
-
-const messageRoutes = require('./routes/messages');
-app.use('/api/messages', messageRoutes);
-app.use(express.json());
+const PORT = process.env.PORT;
 
 // Middleware
-app.use(express.json());
+app.use(express.json()); // ✅ Keep only this one
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/deals', dealRoutes);
+app.use('/api/messages', messageRoutes);
 
-// Root route to test the API
+// Root test route
 app.get('/', (req, res) => {
   res.send('Newlink Exchange API is running on Render 🎉');
 });
 
-// MongoDB Connection
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/newlink', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
