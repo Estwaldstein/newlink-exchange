@@ -7,7 +7,9 @@ const dealSchema = new mongoose.Schema({
   documents: [String], // paths to uploaded docs
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   ndaSignedByIntroducer: { type: Boolean, default: false },
-  ndaSignedByPartner: { type: Boolean, default: false }
+  ndaSignedByPartner: { type: Boolean, default: false },
+  interestedPartners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  status: { type: String, enum: ['pending', 'approved', 'archived'], default: 'pending' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Deal', dealSchema);
