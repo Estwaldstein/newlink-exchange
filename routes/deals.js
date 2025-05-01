@@ -34,7 +34,7 @@ router.get('/list', auth, async (req, res) => {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
-  const deals = await Deal.find();
+  const deals = await Deal.find({ status: 'approved' }).sort({ createdAt: -1 });
   res.json(deals);
 });
 
