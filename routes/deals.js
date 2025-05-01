@@ -28,10 +28,12 @@ router.post('/submit', auth, upload.array('documents'), async (req, res) => {
   res.status(201).json({ message: 'Deal submitted', deal });
 });
 
-// View deals: Admin sees all, Partner sees only approved
+// View deals: Admin sees all with email, Partner sees only approved
 router.get('/list', auth, async (req, res) => {
   if (req.user.role === 'admin') {
-    const deals = await Deal.find().sort({ createdAt: -1 });
+    const deals = await Deal.find()
+      .populate('submittedBy', 'email')
+      .sort({ createdAt: -1 });
     return res.json(deals);
   }
 
@@ -81,7 +83,7 @@ router.post('/interest/:id', auth, async (req, res) => {
         introducer.notifications.push({
           content: `A partner has shown interest in your deal: "${deal.title}"`
         });
-        await introducer.save(); // No markModified needed now
+        await introducer.save();
       }
     } catch (err) {
       console.error('Error sending notification to introducer:', err);
