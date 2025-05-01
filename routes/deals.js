@@ -28,14 +28,19 @@ router.post('/submit', auth, upload.array('documents'), async (req, res) => {
   res.status(201).json({ message: 'Deal submitted', deal });
 });
 
-// View all deals (Partner only)
+// View deals: Admin sees all, Partner sees only approved
 router.get('/list', auth, async (req, res) => {
-  if (req.user.role !== 'partner') {
-    return res.status(403).json({ error: 'Unauthorized' });
+  if (req.user.role === 'admin') {
+    const deals = await Deal.find().sort({ createdAt: -1 });
+    return res.json(deals);
   }
 
-  const deals = await Deal.find({ status: 'approved' }).sort({ createdAt: -1 });
-  res.json(deals);
+  if (req.user.role === 'partner') {
+    const deals = await Deal.find({ status: 'approved' }).sort({ createdAt: -1 });
+    return res.json(deals);
+  }
+
+  return res.status(403).json({ error: 'Unauthorized' });
 });
 
 // NDA agreement (Introducer or Partner)
