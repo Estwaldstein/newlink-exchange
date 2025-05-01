@@ -32,10 +32,11 @@ router.post('/login', async (req, res) => {
 
   const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
 
-  // ✅ Send back both token and role
+  // ✅ Return ID along with token and role
   res.json({
     token,
-    role: user.role
+    role: user.role,
+    id: user._id
   });
 });
 
