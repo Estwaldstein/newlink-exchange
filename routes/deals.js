@@ -28,7 +28,7 @@ router.post('/submit', auth, upload.array('documents'), async (req, res) => {
   res.status(201).json({ message: 'Deal submitted', deal });
 });
 
-// View deals: Admin sees all with email, Partner sees only approved
+// View deals: Admin sees all with email, Partner sees only approved, Introducer sees own
 router.get('/list', auth, async (req, res) => {
   if (req.user.role === 'admin') {
     const deals = await Deal.find()
@@ -39,6 +39,11 @@ router.get('/list', auth, async (req, res) => {
 
   if (req.user.role === 'partner') {
     const deals = await Deal.find({ status: 'approved' }).sort({ createdAt: -1 });
+    return res.json(deals);
+  }
+
+  if (req.user.role === 'introducer') {
+    const deals = await Deal.find({ submittedBy: req.user.id }).sort({ createdAt: -1 });
     return res.json(deals);
   }
 
@@ -100,8 +105,7 @@ router.post('/status/:id', auth, async (req, res) => {
   }
 
   const { status } = req.body;
-  const allowedStatuses = ['pending', 'approved', 'archived', 'rejected'];
-  if (!allowedStatuses.includes(status)) {
+  if (!['pending', 'approved', 'archived', 'rejected'].includes(status)) {
     return res.status(400).json({ error: 'Invalid status value' });
   }
 
