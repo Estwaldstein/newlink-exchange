@@ -93,14 +93,15 @@ router.post('/interest/:id', auth, async (req, res) => {
   res.json({ message: 'Interest expressed', dealId: deal._id });
 });
 
-// Admin: Update deal status (now includes 'rejected')
+// Admin: Update deal status
 router.post('/status/:id', auth, async (req, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Only admins can update status' });
   }
 
   const { status } = req.body;
-  if (!['pending', 'approved', 'archived', 'rejected'].includes(status)) {
+  const allowedStatuses = ['pending', 'approved', 'archived', 'rejected'];
+  if (!allowedStatuses.includes(status)) {
     return res.status(400).json({ error: 'Invalid status value' });
   }
 
