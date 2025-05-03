@@ -32,12 +32,25 @@ router.post('/login', async (req, res) => {
 
   const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
 
-  // ✅ Return ID along with token and role
   res.json({
     token,
     role: user.role,
     id: user._id
   });
+});
+
+// Reset Password
+router.post('/reset-password', async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+  await user.save();
+
+  res.json({ message: 'Password reset successful' });
 });
 
 module.exports = router;
