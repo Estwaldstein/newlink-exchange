@@ -1,26 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const Deal = require('../models/deals');
+const Deal = require('../models/Deal');
 const multer = require('multer');
 const path = require('path');
-const authMiddleware = require('../middleware/auth'); // assuming you have this
-const fs = require('fs');
+const authMiddleware = require('../middleware/auth');
 
-// Set up multer for file uploads
+// File upload setup
 const upload = multer({
   dest: 'uploads/',
   fileFilter: (req, file, cb) => {
-    const allowed = ['.pdf', '.doc', '.docx'];
+    const allowedExt = ['.pdf', '.doc', '.docx'];
     const ext = path.extname(file.originalname).toLowerCase();
-    if (allowed.includes(ext)) {
+    if (allowedExt.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only documents are allowed'));
+      cb(new Error('Only document files are allowed'));
     }
   }
 });
 
-// Submit a deal
+// Submit a new deal
 router.post('/submit', authMiddleware, upload.single('documents'), async (req, res) => {
   try {
     const { title, description, sector, currency, value, country } = req.body;
@@ -31,29 +30,29 @@ router.post('/submit', authMiddleware, upload.single('documents'), async (req, r
       title,
       description,
       sector,
+      submittedBy: req.user.id,
       currency: currency || undefined,
       value: value ? Number(value) : undefined,
       country: country || undefined,
-      documents: documentPaths,
-      submittedBy: req.user.id
+      documents: documentPaths
     });
 
     await deal.save();
-    res.status(201).json({ message: 'Deal submitted successfully.' });
-  } catch (err) {
-    console.error('❌ Error submitting deal:', err);
-    res.status(500).json({ error: 'Failed to submit deal.' });
+    res.status(201).json({ message: 'Deal submitted successfully' });
+  } catch (error) {
+    console.error('❌ Deal submission error:', error);
+    res.status(500).json({ error: 'Failed to submit deal' });
   }
 });
 
-// List all deals (example endpoint)
+// Get list of deals submitted by current user
 router.get('/list', authMiddleware, async (req, res) => {
   try {
     const deals = await Deal.find({ submittedBy: req.user.id }).sort({ createdAt: -1 });
     res.json(deals);
-  } catch (err) {
-    console.error('❌ Error fetching deals:', err);
-    res.status(500).json({ error: 'Failed to fetch deals.' });
+  } catch (error) {
+    console.error('❌ Fetching deals error:', error);
+    res.status(500).json({ error: 'Failed to fetch deals' });
   }
 });
 
