@@ -7,7 +7,7 @@ const dealSchema = new mongoose.Schema({
     type: String,
     enum: ['private_equity', 'wealth_management', 'real_estate']
   },
-  documents: [String], // paths to uploaded docs
+  documents: [String],
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   ndaSignedByIntroducer: { type: Boolean, default: false },
   ndaSignedByPartner: { type: Boolean, default: false },
@@ -33,4 +33,4 @@ const dealSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Deal', dealSchema);
+module.exports = mongoose.models.Deal || mongoose.model('Deal', dealSchema);
