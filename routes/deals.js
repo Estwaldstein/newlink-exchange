@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Deal = require('../models/Deal'); // ✅ Correct case
+const Deal = require('../models/Deal');
 const User = require('../models/User');
-const auth = require('../middleware/authMiddleware'); // ✅ Correct file
+const auth = require('../middleware/authMiddleware');
 const multer = require('multer');
 
 const upload = multer({ dest: 'uploads/' });
@@ -14,7 +14,8 @@ router.post('/submit', auth, upload.array('documents'), async (req, res) => {
   }
 
   const { title, description, sector, currency, value, country } = req.body;
-  const documents = req.files.map(f => f.path);
+
+  const documents = req.files.map(f => f.filename); // ✅ Only store the filename
 
   const deal = new Deal({
     title,
