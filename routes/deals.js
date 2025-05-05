@@ -1,11 +1,25 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const multer = require('multer');
 const Deal = require('../models/Deal');
 const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
-const multer = require('multer');
 
-const upload = multer({ dest: 'uploads/' });
+// Configure multer storage to preserve original filenames and extensions
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../uploads'));
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const originalName = file.originalname;
+    const sanitizedOriginalName = originalName.replace(/\s+/g, '_');
+    cb(null, `${timestamp}-${sanitizedOriginalName}`);
+  }
+});
+
+const upload = multer({ storage });
 
 // Submit a deal (Introducer only)
 router.post('/submit', auth, upload.array('documents'), async (req, res) => {
@@ -14,8 +28,7 @@ router.post('/submit', auth, upload.array('documents'), async (req, res) => {
   }
 
   const { title, description, sector, currency, value, country } = req.body;
-
-  const documents = req.files.map(f => f.filename); // ✅ Only store the filename
+  const documents = req.files.map(f => f.filename);
 
   const deal = new Deal({
     title,
