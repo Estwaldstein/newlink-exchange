@@ -6,16 +6,15 @@ const Deal = require('../models/Deal');
 const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
 
-// Configure multer storage to preserve original filenames and extensions
+// Configure multer to preserve original filenames
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, '../uploads'));
   },
   filename: (req, file, cb) => {
     const timestamp = Date.now();
-    const originalName = file.originalname;
-    const sanitizedOriginalName = originalName.replace(/\s+/g, '_');
-    cb(null, `${timestamp}-${sanitizedOriginalName}`);
+    const sanitized = file.originalname.replace(/\s+/g, '_');
+    cb(null, `${timestamp}-${sanitized}`);
   }
 });
 
@@ -45,7 +44,7 @@ router.post('/submit', auth, upload.array('documents'), async (req, res) => {
   res.status(201).json({ message: 'Deal submitted', deal });
 });
 
-// View deals: Admin sees all with email, Partner sees only approved
+// View deals
 router.get('/list', auth, async (req, res) => {
   if (req.user.role === 'admin') {
     const deals = await Deal.find().populate('submittedBy', 'email').sort({ createdAt: -1 });
@@ -60,7 +59,7 @@ router.get('/list', auth, async (req, res) => {
   return res.status(403).json({ error: 'Unauthorized' });
 });
 
-// NDA agreement (Introducer or Partner)
+// NDA agreement
 router.post('/nda/:id', auth, async (req, res) => {
   const deal = await Deal.findById(req.params.id);
   if (!deal) return res.status(404).json({ error: 'Deal not found' });
@@ -77,16 +76,14 @@ router.post('/nda/:id', auth, async (req, res) => {
   res.json({ message: 'NDA signed' });
 });
 
-// Express interest in a deal (Partner only)
+// Express interest
 router.post('/interest/:id', auth, async (req, res) => {
   if (req.user.role !== 'partner') {
     return res.status(403).json({ error: 'Only partners can express interest' });
   }
 
   const deal = await Deal.findById(req.params.id);
-  if (!deal) {
-    return res.status(404).json({ error: 'Deal not found' });
-  }
+  if (!deal) return res.status(404).json({ error: 'Deal not found' });
 
   if (!deal.interestedPartners.includes(req.user.id)) {
     deal.interestedPartners.push(req.user.id);
@@ -101,14 +98,14 @@ router.post('/interest/:id', auth, async (req, res) => {
         await introducer.save();
       }
     } catch (err) {
-      console.error('Error sending notification to introducer:', err);
+      console.error('Error notifying introducer:', err);
     }
   }
 
   res.json({ message: 'Interest expressed', dealId: deal._id });
 });
 
-// Admin: Update deal status
+// Admin: Update status
 router.post('/status/:id', auth, async (req, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Only admins can update status' });
@@ -116,7 +113,7 @@ router.post('/status/:id', auth, async (req, res) => {
 
   const { status } = req.body;
   if (!['pending', 'approved', 'archived', 'rejected'].includes(status)) {
-    return res.status(400).json({ error: 'Invalid status value' });
+    return res.status(400).json({ error: 'Invalid status' });
   }
 
   const deal = await Deal.findById(req.params.id);
@@ -125,7 +122,7 @@ router.post('/status/:id', auth, async (req, res) => {
   deal.status = status;
   await deal.save();
 
-  res.json({ message: 'Deal status updated', deal });
+  res.json({ message: 'Status updated', deal });
 });
 
 module.exports = router;
