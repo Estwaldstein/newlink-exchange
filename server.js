@@ -9,11 +9,9 @@ const dashboardRoutes = require('./routes/dashboard');
 const dealRoutes = require('./routes/deals');
 const messageRoutes = require('./routes/messages');
 const notificationRoutes = require('./routes/notifications');
-
 const userRoutes = require('./routes/user');
-app.use('/api/user', userRoutes);
 
-const app = express();
+const app = express(); // ✅ Moved here — before app.use()
 const PORT = process.env.PORT || 10000;
 
 // ✅ Enable CORS for deployed frontend
@@ -34,6 +32,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/deals', dealRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/user', userRoutes); // ✅ This is now valid
 
 // ✅ Root test route
 app.get('/', (req, res) => {
