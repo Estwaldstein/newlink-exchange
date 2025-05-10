@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
+require('dotenv').config(); // Make sure this is at the top if using .env files
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
@@ -12,32 +13,32 @@ const notificationRoutes = require('./routes/notifications');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Enable CORS
+// ✅ Enable CORS for deployed frontend
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://app.exchange.newlink-asia.com',
   credentials: true
 }));
 
-// Middleware
+// ✅ Middleware
 app.use(express.json());
 
-// Serve uploaded files from /uploads
+// ✅ Serve uploaded documents
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
+// ✅ Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/deals', dealRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// Root test
+// ✅ Root test route
 app.get('/', (req, res) => {
   res.send('Newlink Exchange API is running on Render 🎉');
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/newlink', {
+// ✅ Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
