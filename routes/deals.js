@@ -6,7 +6,7 @@ const Deal = require('../models/Deal');
 const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
 
-// Configure multer to preserve original filenames
+// Configure multer to preserve original filenames and allow only PDFs
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, '../uploads'));
@@ -18,7 +18,15 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'application/pdf') {
+    cb(null, true);
+  } else {
+    cb(new Error('Only PDF files are allowed'));
+  }
+};
+
+const upload = multer({ storage, fileFilter });
 
 /**
  * Submit a new deal (Introducer only)
