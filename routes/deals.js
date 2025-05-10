@@ -20,31 +20,40 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Submit a deal (Introducer only)
+/**
+ * Submit a new deal (Introducer only)
+ */
 router.post('/submit', auth, upload.array('documents'), async (req, res) => {
   if (req.user.role !== 'introducer') {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
-  const { title, description, sector, currency, value, country } = req.body;
-  const documents = req.files.map(f => f.filename);
+  try {
+    const { title, description, sector, currency, value, country } = req.body;
+    const documents = req.files.map(f => f.filename);
 
-  const deal = new Deal({
-    title,
-    description,
-    sector,
-    currency,
-    value: value ? Number(value) : undefined,
-    country,
-    documents,
-    submittedBy: req.user.id
-  });
+    const deal = new Deal({
+      title,
+      description,
+      sector,
+      currency,
+      value: value ? Number(value) : undefined,
+      country,
+      documents,
+      submittedBy: req.user.id
+    });
 
-  await deal.save();
-  res.status(201).json({ message: 'Deal submitted', deal });
+    await deal.save();
+    res.status(201).json({ message: 'Deal submitted', deal });
+  } catch (err) {
+    console.error('❌ Error submitting deal:', err);
+    res.status(500).json({ error: 'Server error submitting deal' });
+  }
 });
 
-// View deals by role with interestedPartners populated for introducers/admins
+/**
+ * Get deals by role
+ */
 router.get('/list', auth, async (req, res) => {
   try {
     let deals;
@@ -72,37 +81,46 @@ router.get('/list', auth, async (req, res) => {
   }
 });
 
-// NDA agreement
+/**
+ * Sign NDA for a deal
+ */
 router.post('/nda/:id', auth, async (req, res) => {
-  const deal = await Deal.findById(req.params.id);
-  if (!deal) return res.status(404).json({ error: 'Deal not found' });
+  try {
+    const deal = await Deal.findById(req.params.id);
+    if (!deal) return res.status(404).json({ error: 'Deal not found' });
 
-  if (req.user.role === 'introducer') {
-    deal.ndaSignedByIntroducer = true;
-  } else if (req.user.role === 'partner') {
-    deal.ndaSignedByPartner = true;
-  } else {
-    return res.status(403).json({ error: 'Unauthorized' });
+    if (req.user.role === 'introducer') {
+      deal.ndaSignedByIntroducer = true;
+    } else if (req.user.role === 'partner') {
+      deal.ndaSignedByPartner = true;
+    } else {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    await deal.save();
+    res.json({ message: 'NDA signed' });
+  } catch (err) {
+    console.error('❌ Error signing NDA:', err);
+    res.status(500).json({ error: 'Server error signing NDA' });
   }
-
-  await deal.save();
-  res.json({ message: 'NDA signed' });
 });
 
-// Express interest (Partner only)
+/**
+ * Express interest in a deal (Partner only)
+ */
 router.post('/interest/:id', auth, async (req, res) => {
   if (req.user.role !== 'partner') {
     return res.status(403).json({ error: 'Only partners can express interest' });
   }
 
-  const deal = await Deal.findById(req.params.id);
-  if (!deal) return res.status(404).json({ error: 'Deal not found' });
+  try {
+    const deal = await Deal.findById(req.params.id);
+    if (!deal) return res.status(404).json({ error: 'Deal not found' });
 
-  if (!deal.interestedPartners.includes(req.user.id)) {
-    deal.interestedPartners.push(req.user.id);
-    await deal.save();
+    if (!deal.interestedPartners.includes(req.user.id)) {
+      deal.interestedPartners.push(req.user.id);
+      await deal.save();
 
-    try {
       const introducer = await User.findById(deal.submittedBy.toString());
       const partner = await User.findById(req.user.id);
 
@@ -112,32 +130,40 @@ router.post('/interest/:id', auth, async (req, res) => {
         });
         await introducer.save();
       }
-    } catch (err) {
-      console.error('❌ Error notifying introducer:', err);
     }
-  }
 
-  res.json({ message: 'Interest expressed', dealId: deal._id });
+    res.json({ message: 'Interest expressed', dealId: deal._id });
+  } catch (err) {
+    console.error('❌ Error expressing interest:', err);
+    res.status(500).json({ error: 'Server error expressing interest' });
+  }
 });
 
-// Admin: Update status
+/**
+ * Update deal status (Admin only)
+ */
 router.post('/status/:id', auth, async (req, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Only admins can update status' });
   }
 
-  const { status } = req.body;
-  if (!['pending', 'approved', 'archived', 'rejected'].includes(status)) {
-    return res.status(400).json({ error: 'Invalid status' });
+  try {
+    const { status } = req.body;
+    if (!['pending', 'approved', 'archived', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const deal = await Deal.findById(req.params.id);
+    if (!deal) return res.status(404).json({ error: 'Deal not found' });
+
+    deal.status = status;
+    await deal.save();
+
+    res.json({ message: 'Status updated', deal });
+  } catch (err) {
+    console.error('❌ Error updating deal status:', err);
+    res.status(500).json({ error: 'Server error updating status' });
   }
-
-  const deal = await Deal.findById(req.params.id);
-  if (!deal) return res.status(404).json({ error: 'Deal not found' });
-
-  deal.status = status;
-  await deal.save();
-
-  res.json({ message: 'Status updated', deal });
 });
 
 module.exports = router;
