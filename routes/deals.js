@@ -44,7 +44,7 @@ router.post('/submit', auth, upload.array('documents'), async (req, res) => {
   res.status(201).json({ message: 'Deal submitted', deal });
 });
 
-// View deals by role
+// View deals by role with interestedPartners populated for introducers/admins
 router.get('/list', auth, async (req, res) => {
   try {
     let deals;
@@ -52,12 +52,14 @@ router.get('/list', auth, async (req, res) => {
     if (req.user.role === 'admin') {
       deals = await Deal.find()
         .populate('submittedBy', 'email')
+        .populate('interestedPartners', 'email')
         .sort({ createdAt: -1 });
     } else if (req.user.role === 'partner') {
       deals = await Deal.find({ status: 'approved' })
         .sort({ createdAt: -1 });
     } else if (req.user.role === 'introducer') {
       deals = await Deal.find({ submittedBy: req.user.id })
+        .populate('interestedPartners', 'email')
         .sort({ createdAt: -1 });
     } else {
       return res.status(403).json({ error: 'Unauthorized' });
