@@ -44,19 +44,30 @@ router.post('/submit', auth, upload.array('documents'), async (req, res) => {
   res.status(201).json({ message: 'Deal submitted', deal });
 });
 
-// View deals
+// View deals by role
 router.get('/list', auth, async (req, res) => {
-  if (req.user.role === 'admin') {
-    const deals = await Deal.find().populate('submittedBy', 'email').sort({ createdAt: -1 });
-    return res.json(deals);
-  }
+  try {
+    let deals;
 
-  if (req.user.role === 'partner') {
-    const deals = await Deal.find({ status: 'approved' }).sort({ createdAt: -1 });
-    return res.json(deals);
-  }
+    if (req.user.role === 'admin') {
+      deals = await Deal.find()
+        .populate('submittedBy', 'email')
+        .sort({ createdAt: -1 });
+    } else if (req.user.role === 'partner') {
+      deals = await Deal.find({ status: 'approved' })
+        .sort({ createdAt: -1 });
+    } else if (req.user.role === 'introducer') {
+      deals = await Deal.find({ submittedBy: req.user.id })
+        .sort({ createdAt: -1 });
+    } else {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
 
-  return res.status(403).json({ error: 'Unauthorized' });
+    res.json(deals);
+  } catch (err) {
+    console.error('❌ Error retrieving deals:', err);
+    res.status(500).json({ error: 'Server error retrieving deals' });
+  }
 });
 
 // NDA agreement
@@ -76,7 +87,7 @@ router.post('/nda/:id', auth, async (req, res) => {
   res.json({ message: 'NDA signed' });
 });
 
-// Express interest
+// Express interest (Partner only)
 router.post('/interest/:id', auth, async (req, res) => {
   if (req.user.role !== 'partner') {
     return res.status(403).json({ error: 'Only partners can express interest' });
@@ -98,7 +109,7 @@ router.post('/interest/:id', auth, async (req, res) => {
         await introducer.save();
       }
     } catch (err) {
-      console.error('Error notifying introducer:', err);
+      console.error('❌ Error notifying introducer:', err);
     }
   }
 
