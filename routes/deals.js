@@ -22,7 +22,7 @@ const fileFilter = (req, file, cb) => {
   if (file.mimetype === 'application/pdf') {
     cb(null, true);
   } else {
-    cb(new Error('Only PDF files are allowed'));
+    cb(new Error('Only PDF files are allowed'), false);
   }
 };
 
@@ -31,32 +31,37 @@ const upload = multer({ storage, fileFilter });
 /**
  * Submit a new deal (Introducer only)
  */
-router.post('/submit', auth, upload.array('documents'), async (req, res) => {
-  if (req.user.role !== 'introducer') {
-    return res.status(403).json({ error: 'Unauthorized' });
-  }
+router.post('/submit', auth, (req, res, next) => {
+  upload.array('documents')(req, res, async (err) => {
+    if (err instanceof multer.MulterError || err?.message === 'Only PDF files are allowed') {
+      return res.status(400).json({ error: err.message || 'Upload error' });
+    }
+    if (req.user.role !== 'introducer') {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
 
-  try {
-    const { title, description, sector, currency, value, country } = req.body;
-    const documents = req.files.map(f => f.filename);
+    try {
+      const { title, description, sector, currency, value, country } = req.body;
+      const documents = req.files?.map(f => f.filename) || [];
 
-    const deal = new Deal({
-      title,
-      description,
-      sector,
-      currency,
-      value: value ? Number(value) : undefined,
-      country,
-      documents,
-      submittedBy: req.user.id
-    });
+      const deal = new Deal({
+        title,
+        description,
+        sector,
+        currency,
+        value: value ? Number(value) : undefined,
+        country,
+        documents,
+        submittedBy: req.user.id
+      });
 
-    await deal.save();
-    res.status(201).json({ message: 'Deal submitted', deal });
-  } catch (err) {
-    console.error('❌ Error submitting deal:', err);
-    res.status(500).json({ error: 'Server error submitting deal' });
-  }
+      await deal.save();
+      res.status(201).json({ message: 'Deal submitted', deal });
+    } catch (err) {
+      console.error('❌ Error submitting deal:', err);
+      res.status(500).json({ error: 'Server error submitting deal' });
+    }
+  });
 });
 
 /**
