@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { PDFDocument, rgb, degrees, StandardFonts } = require('pdf-lib');
 
-async function addWatermarkToPDF(inputPath, watermarkText = 'Confidential') {
+async function addWatermarkToPDF(inputPath, watermarkText = 'Newlink Confidential') {
   const pdfBytes = fs.readFileSync(inputPath);
   const pdfDoc = await PDFDocument.load(pdfBytes);
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
