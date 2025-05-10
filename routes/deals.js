@@ -104,9 +104,11 @@ router.post('/interest/:id', auth, async (req, res) => {
 
     try {
       const introducer = await User.findById(deal.submittedBy.toString());
-      if (introducer) {
+      const partner = await User.findById(req.user.id);
+
+      if (introducer && partner) {
         introducer.notifications.push({
-          content: `A partner has shown interest in your deal: "${deal.title}"`
+          content: `${partner.email} has shown interest in your deal: "${deal.title}"`
         });
         await introducer.save();
       }
