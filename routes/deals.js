@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
+const fs = require('fs');
 const multer = require('multer');
 const Deal = require('../models/Deal');
 const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
+const watermarkPdf = require('../utils/watermark');
 
 // Configure multer to preserve original filenames and allow only PDFs
 const storage = multer.diskStorage({
@@ -176,6 +178,27 @@ router.post('/status/:id', auth, async (req, res) => {
   } catch (err) {
     console.error('❌ Error updating deal status:', err);
     res.status(500).json({ error: 'Server error updating status' });
+  }
+});
+
+/**
+ * Download watermarked PDF (Authenticated users)
+ */
+router.get('/download/:filename', auth, async (req, res) => {
+  const filePath = path.join(__dirname, '../uploads', req.params.filename);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'File not found' });
+  }
+
+  try {
+    const watermarkedPdf = await watermarkPdf(filePath);
+    res.setHeader('Content-Disposition', `attachment; filename="${req.params.filename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(watermarkedPdf);
+  } catch (err) {
+    console.error('❌ Error watermarking file:', err);
+    res.status(500).json({ error: 'Failed to watermark file' });
   }
 });
 
