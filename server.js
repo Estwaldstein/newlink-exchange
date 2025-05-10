@@ -10,6 +10,9 @@ const dealRoutes = require('./routes/deals');
 const messageRoutes = require('./routes/messages');
 const notificationRoutes = require('./routes/notifications');
 
+const userRoutes = require('./routes/user');
+app.use('/api/user', userRoutes);
+
 const app = express();
 const PORT = process.env.PORT || 10000;
 
