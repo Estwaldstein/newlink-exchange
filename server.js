@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
-require('dotenv').config(); // Make sure this is at the top if using .env files
+require('dotenv').config(); // Load environment variables
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
@@ -25,7 +25,7 @@ app.use(express.json());
 // ✅ Serve uploaded documents
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ Routes
+// ✅ API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/deals', dealRoutes);
