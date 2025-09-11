@@ -1,37 +1,26 @@
 name: Backend CI/CD
 
 on:
-  pull_request:
-    branches: [ main ]
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  ci:
-    name: Install only
+  install:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js 18.x
-        uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 18.x
-
+          node-version: '18'
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
   deploy:
-    name: Deploy to Render
-    needs: ci
+    needs: install
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && success()
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to Render
-        uses: render-examples/deploy@v1
-        with:
-          api-key: ${{ secrets.RENDER_API_KEY }}
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+      - name: Deploy to Render via webhook
+        run: |
+          curl -X GET "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
