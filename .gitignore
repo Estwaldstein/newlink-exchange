@@ -1,0 +1,17 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.env
+.env.*
+.DS_Store
+
+# Builds
+dist/
+build/
+
+# Uploaded files (keep folder, ignore contents)
+uploads/*
+!uploads/.gitkeep
