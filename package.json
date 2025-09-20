@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "Platform for introducers and partners to connect and manage deals",
   "main": "server.js",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "npm rebuild bcrypt --build-from-source"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
